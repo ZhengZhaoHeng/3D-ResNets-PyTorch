@@ -102,4 +102,8 @@ ENV/
 
 .DS_Store
 
+*.json
+*.pth
 .vscode
+results
+*.tar

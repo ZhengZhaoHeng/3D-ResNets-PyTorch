@@ -29,6 +29,11 @@ def parse_opts():
         type=str,
         help='Used dataset (activitynet | kinetics | ucf101 | hmdb51)')
     parser.add_argument(
+        '--channel_fuse',
+        default=-1,
+        type=int,
+        help='step for channel fusion')
+    parser.add_argument(
         '--n_classes',
         default=400,
         type=int,

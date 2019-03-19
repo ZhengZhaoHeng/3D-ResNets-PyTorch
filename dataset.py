@@ -2,11 +2,12 @@ from datasets.kinetics import Kinetics
 from datasets.activitynet import ActivityNet
 from datasets.ucf101 import UCF101
 from datasets.hmdb51 import HMDB51
+from datasets.synthetic import Synthetic
 
 
 def get_training_set(opt, spatial_transform, temporal_transform,
                      target_transform):
-    assert opt.dataset in ['kinetics', 'activitynet', 'ucf101', 'hmdb51']
+    assert opt.dataset in ['kinetics', 'activitynet', 'ucf101', 'hmdb51', 'synthetic']
 
     if opt.dataset == 'kinetics':
         training_data = Kinetics(
@@ -41,13 +42,22 @@ def get_training_set(opt, spatial_transform, temporal_transform,
             spatial_transform=spatial_transform,
             temporal_transform=temporal_transform,
             target_transform=target_transform)
+    elif opt.dataset == 'synthetic':
+        training_data = Synthetic(
+            opt.video_path,
+            opt.annotation_path,
+            'training',
+            spatial_transform=spatial_transform,
+            temporal_transform=temporal_transform,
+            target_transform=target_transform,
+            channel_fuse_step=opt.channel_fuse)
 
     return training_data
 
 
 def get_validation_set(opt, spatial_transform, temporal_transform,
                        target_transform):
-    assert opt.dataset in ['kinetics', 'activitynet', 'ucf101', 'hmdb51']
+    assert opt.dataset in ['kinetics', 'activitynet', 'ucf101', 'hmdb51', 'synthetic']
 
     if opt.dataset == 'kinetics':
         validation_data = Kinetics(
@@ -90,11 +100,22 @@ def get_validation_set(opt, spatial_transform, temporal_transform,
             temporal_transform,
             target_transform,
             sample_duration=opt.sample_duration)
+    elif opt.dataset == 'synthetic':
+        validation_data = Synthetic(
+            opt.video_path,
+            opt.annotation_path,
+            'validation',
+            opt.n_val_samples,
+            spatial_transform,
+            temporal_transform,
+            target_transform,
+            sample_duration=opt.sample_duration,
+            channel_fuse_step=opt.channel_fuse)
     return validation_data
 
 
 def get_test_set(opt, spatial_transform, temporal_transform, target_transform):
-    assert opt.dataset in ['kinetics', 'activitynet', 'ucf101', 'hmdb51']
+    assert opt.dataset in ['kinetics', 'activitynet', 'ucf101', 'hmdb51', 'synthetic']
     assert opt.test_subset in ['val', 'test']
 
     if opt.test_subset == 'val':
@@ -142,5 +163,17 @@ def get_test_set(opt, spatial_transform, temporal_transform, target_transform):
             temporal_transform,
             target_transform,
             sample_duration=opt.sample_duration)
+    elif opt.dataset == 'synthetic':
+        test_data = Synthetic(
+            opt.video_path,
+            opt.annotation_path,
+            subset,
+            0,
+            spatial_transform,
+            temporal_transform,
+            target_transform,
+            sample_duration=opt.sample_duration,
+            channel_fuse_step=opt.channel_fuse)
+
 
     return test_data
