@@ -48,7 +48,7 @@ def train_epoch(epoch, data_loader, model, criterion, optimizer, opt,
             'acc': accuracies.val,
             'lr': optimizer.param_groups[0]['lr']
         })
-
+        
         print('Epoch: [{0}][{1}/{2}]\t'
               'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
               'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'

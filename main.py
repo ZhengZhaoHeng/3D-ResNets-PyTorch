@@ -33,6 +33,7 @@ if __name__ == '__main__':
         if opt.pretrain_path:
             opt.pretrain_path = os.path.join(opt.root_path, opt.pretrain_path)
     opt.scales = [opt.initial_scale]
+    os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpu
     for i in range(1, opt.n_scales):
         opt.scales.append(opt.scales[-1] * opt.scale_step)
     opt.arch = '{}-{}'.format(opt.model, opt.model_depth)

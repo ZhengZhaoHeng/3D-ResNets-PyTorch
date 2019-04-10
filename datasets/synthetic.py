@@ -7,6 +7,7 @@ import functools
 import json
 import copy
 import numpy as np
+import random
 
 from utils import load_value_file
 
@@ -37,13 +38,14 @@ def get_default_video_loader():
     image_loader = get_default_image_loader()
     return functools.partial(video_loader, image_loader=image_loader)
 
-def video_loader(video_dir_path, frame_indices, channel_fuse_step, image_loader):
+def video_loader(frame_indices, img_list, channel_fuse_step, image_loader):
     video = []
     for i in frame_indices:
-        image_path = os.path.join(video_dir_path, '{}_{:06d}.png'.format(video_dir_path[-6:], i - 1))
+        image_path = img_list[i-1]
         if os.path.exists(image_path):
             cur_frame = image_loader(image_path)
             if channel_fuse_step > 0:
+                assert False
                 last_image_path = os.path.join(video_dir_path, '{}_{:06d}.png'.format(video_dir_path[-6:], i - 1 - channel_fuse_step))
                 next_image_path = os.path.join(video_dir_path, '{}_{:06d}.png'.format(video_dir_path[-6:], i - 1 + channel_fuse_step))
 
@@ -92,7 +94,7 @@ def get_video_names_and_annotations(data, subset):
 
 
 def make_dataset(root_path, annotation_path, subset, n_samples_for_each_video,
-                 sample_duration):
+                 sample_duration, sample_step):
     data = load_annotation_data(annotation_path)
     video_names, annotations = get_video_names_and_annotations(data, subset)
     class_to_idx = get_class_labels(data)
@@ -105,22 +107,24 @@ def make_dataset(root_path, annotation_path, subset, n_samples_for_each_video,
         if i % 1000 == 0:
             print('dataset loading [{}/{}]'.format(i, len(video_names)))
 
+        '''
         video_path = os.path.join(data['datapath'], video_names[i])
         if not os.path.exists(video_path):
             continue
 
         n_frames_file_path = os.path.join(video_path, 'n_frames')
-        n_frames = 120
+        '''
+        n_frames = data[subset][i]['n_frames']
         if n_frames <= 0:
             continue
 
         begin_t = 1
         end_t = n_frames
         sample = {
-            'video': video_path,
             'segment': [begin_t, end_t],
             'n_frames': n_frames,
-            'video_id': video_names[i]
+            'video_id': video_names[i],
+            'img_list': data[subset][i]['img_list']
         }
         if len(annotations) != 0:
             sample['label'] = class_to_idx[annotations[i]['label']]
@@ -133,14 +137,14 @@ def make_dataset(root_path, annotation_path, subset, n_samples_for_each_video,
         else:
             if n_samples_for_each_video > 1:
                 step = max(1,
-                           math.ceil((n_frames - 1 - sample_duration) /
+                           math.ceil((n_frames - 1 - sample_duration * sample_step) /
                                      (n_samples_for_each_video - 1)))
             else:
                 step = sample_duration
             for j in range(1, n_frames, step):
                 sample_j = copy.deepcopy(sample)
                 sample_j['frame_indices'] = list(
-                    range(j, min(n_frames + 1, j + sample_duration)))
+                    range(j, min(n_frames + 1, j + sample_duration * sample_step), sample_step))
                 dataset.append(sample_j)
 
     return dataset, idx_to_class
@@ -173,16 +177,20 @@ class Synthetic(data.Dataset):
                  target_transform=None,
                  sample_duration=16,
                  channel_fuse_step=-1,
-                 get_loader=get_default_video_loader):
+                 get_loader=get_default_video_loader,
+                 sample_step=(1, 10)):
         self.data, self.class_names = make_dataset(
             root_path, annotation_path, subset, n_samples_for_each_video,
-            sample_duration)
+            sample_duration, sample_step)
 
+        print (len(self.data))
         self.spatial_transform = spatial_transform
         self.temporal_transform = temporal_transform
         self.target_transform = target_transform
         self.loader = get_loader()
         self.channel_fuse_step=channel_fuse_step
+        self.sample_step = sample_step
+        self.subset = subset
 
     def __getitem__(self, index):
         """
@@ -191,12 +199,12 @@ class Synthetic(data.Dataset):
         Returns:
             tuple: (image, target) where target is class_index of the target class.
         """
-        path = self.data[index]['video']
 
         frame_indices = self.data[index]['frame_indices']
         if self.temporal_transform is not None:
-            frame_indices = self.temporal_transform(frame_indices)
-        clip = self.loader(path, frame_indices, self.channel_fuse_step)
+            step = random.randint(self.sample_step)
+            frame_indices = self.temporal_transform(frame_indices, step=step)
+        clip = self.loader(frame_indices, self.data[index]['img_list'], self.channel_fuse_step)
         if self.spatial_transform is not None:
             self.spatial_transform.randomize_parameters()
             clip = [self.spatial_transform(img) for img in clip]

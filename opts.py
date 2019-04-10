@@ -233,6 +233,10 @@ def parse_opts():
     parser.add_argument(
         '--manual_seed', default=1, type=int, help='Manually set random seed')
 
+    parser.add_argument(
+        '--gpu', default='0', type=str, help='GPU id'
+    )
+
     args = parser.parse_args()
 
     return args

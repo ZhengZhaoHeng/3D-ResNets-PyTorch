@@ -22,8 +22,9 @@ def val_epoch(epoch, data_loader, model, criterion, opt, logger):
 
         if not opt.no_cuda:
             targets = targets.cuda()
-        inputs = Variable(inputs, volatile=True)
-        targets = Variable(targets, volatile=True)
+        with torch.no_grad():
+            inputs = Variable(inputs)
+            targets = Variable(targets)
         outputs = model(inputs)
         loss = criterion(outputs, targets)
         acc = calculate_accuracy(outputs, targets)
@@ -33,7 +34,7 @@ def val_epoch(epoch, data_loader, model, criterion, opt, logger):
 
         batch_time.update(time.time() - end_time)
         end_time = time.time()
-
+        
         print('Epoch: [{0}][{1}/{2}]\t'
               'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
               'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'

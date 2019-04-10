@@ -7,7 +7,7 @@ class LoopPadding(object):
     def __init__(self, size):
         self.size = size
 
-    def __call__(self, frame_indices):
+    def __call__(self, frame_indices, step=1):
         out = frame_indices
 
         for index in out:
@@ -55,7 +55,7 @@ class TemporalCenterCrop(object):
     def __init__(self, size):
         self.size = size
 
-    def __call__(self, frame_indices):
+    def __call__(self, frame_indices, step=1):
         """
         Args:
             frame_indices (list): frame indices to be cropped.
@@ -90,7 +90,7 @@ class TemporalRandomCrop(object):
     def __init__(self, size):
         self.size = size
 
-    def __call__(self, frame_indices):
+    def __call__(self, frame_indices, step=1):
         """
         Args:
             frame_indices (list): frame indices to be cropped.
@@ -100,9 +100,9 @@ class TemporalRandomCrop(object):
 
         rand_end = max(0, len(frame_indices) - self.size - 1)
         begin_index = random.randint(0, rand_end)
-        end_index = min(begin_index + self.size, len(frame_indices))
+        end_index = min(begin_index + self.size * step, len(frame_indices))
 
-        out = frame_indices[begin_index:end_index]
+        out = frame_indices[begin_index:end_index:step]
 
         for index in out:
             if len(out) >= self.size:

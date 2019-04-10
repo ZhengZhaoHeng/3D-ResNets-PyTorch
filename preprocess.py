@@ -7,11 +7,11 @@ with open('label.json', 'r') as fp:
 
 print (len(data))
 # 0: art, no cam, 1: cam, no art, 2: art, no cam
-data_path = '/home/zhaohenz/obj-articulation/rendered/valid_02_16/frames'
+data_path = '/scratch/frames'
 
 # training: 400, validation: 100, testing: 100
 
-num_count = {'training': 600, 'validation': 150, 'testing': 150}
+num_count = {'training': 480, 'validation': 120, 'testing': 0}
 
 cats = [[] for i in range(3)]
 
