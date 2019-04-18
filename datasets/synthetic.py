@@ -178,7 +178,7 @@ class Synthetic(data.Dataset):
                  sample_duration=16,
                  channel_fuse_step=-1,
                  get_loader=get_default_video_loader,
-                 sample_step=(1, 10)):
+                 sample_step=10):
         self.data, self.class_names = make_dataset(
             root_path, annotation_path, subset, n_samples_for_each_video,
             sample_duration, sample_step)
@@ -202,7 +202,7 @@ class Synthetic(data.Dataset):
 
         frame_indices = self.data[index]['frame_indices']
         if self.temporal_transform is not None:
-            step = random.randint(self.sample_step)
+            step = random.randint(1, 10)
             frame_indices = self.temporal_transform(frame_indices, step=step)
         clip = self.loader(frame_indices, self.data[index]['img_list'], self.channel_fuse_step)
         if self.spatial_transform is not None:
