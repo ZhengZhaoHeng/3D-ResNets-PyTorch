@@ -8,6 +8,7 @@ import json
 import copy
 import numpy as np
 import random
+import torchfile
 
 from utils import load_value_file
 
@@ -17,6 +18,8 @@ def pil_loader(path):
         with Image.open(f) as img:
             return img.convert('RGB')
 
+def lua_loader(path):
+    return torchfile.load(path)
 
 def accimage_loader(path):
     try:
@@ -27,15 +30,14 @@ def accimage_loader(path):
         return pil_loader(path)
 
 
-def get_default_image_loader():
-    from torchvision import get_image_backend
-    if get_image_backend() == 'accimage':
-        return accimage_loader
-    else:
+def get_default_image_loader(image_type):
+    if image_type == 'rgb':
         return pil_loader
+    else:
+        return lua_loader
 
-def get_default_video_loader():
-    image_loader = get_default_image_loader()
+def get_default_video_loader(image_type):
+    image_loader = get_default_image_loader(image_type)
     return functools.partial(video_loader, image_loader=image_loader)
 
 def video_loader(frame_indices, img_list, channel_fuse_step, image_loader):
@@ -44,6 +46,8 @@ def video_loader(frame_indices, img_list, channel_fuse_step, image_loader):
         image_path = img_list[i-1]
         if os.path.exists(image_path):
             cur_frame = image_loader(image_path)
+
+            '''
             if channel_fuse_step > 0:
                 assert False
                 last_image_path = os.path.join(video_dir_path, '{}_{:06d}.png'.format(video_dir_path[-6:], i - 1 - channel_fuse_step))
@@ -69,7 +73,8 @@ def video_loader(frame_indices, img_list, channel_fuse_step, image_loader):
                 cur_frame = Image.fromarray(cur_frame)
                 video.append(cur_frame)
             else:
-                video.append(cur_frame)
+            '''
+            video.append(cur_frame)
         else:
             return video
 
@@ -94,7 +99,7 @@ def get_video_names_and_annotations(data, subset):
 
 
 def make_dataset(root_path, annotation_path, subset, n_samples_for_each_video,
-                 sample_duration, sample_step):
+                 sample_duration, sample_step, image_type):
     data = load_annotation_data(annotation_path)
     video_names, annotations = get_video_names_and_annotations(data, subset)
     class_to_idx = get_class_labels(data)
@@ -124,7 +129,7 @@ def make_dataset(root_path, annotation_path, subset, n_samples_for_each_video,
             'segment': [begin_t, end_t],
             'n_frames': n_frames,
             'video_id': video_names[i],
-            'img_list': data[subset][i]['img_list']
+            'img_list': data[subset][i][image_type]
         }
         if len(annotations) != 0:
             sample['label'] = class_to_idx[annotations[i]['label']]
@@ -178,16 +183,17 @@ class Synthetic(data.Dataset):
                  sample_duration=16,
                  channel_fuse_step=-1,
                  get_loader=get_default_video_loader,
+                 image_type='rgb',
                  sample_step=10):
         self.data, self.class_names = make_dataset(
             root_path, annotation_path, subset, n_samples_for_each_video,
-            sample_duration, sample_step)
+            sample_duration, sample_step, image_type)
 
         print (len(self.data))
         self.spatial_transform = spatial_transform
         self.temporal_transform = temporal_transform
         self.target_transform = target_transform
-        self.loader = get_loader()
+        self.loader = get_loader(image_type)
         self.channel_fuse_step=channel_fuse_step
         self.sample_step = sample_step
         self.subset = subset
