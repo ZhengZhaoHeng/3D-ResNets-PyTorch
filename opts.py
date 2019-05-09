@@ -236,6 +236,10 @@ def parse_opts():
     parser.add_argument(
         '--gpu', default='0', type=str, help='GPU id'
     )
+    
+    parser.add_argument(
+        '--image_type', default='rgb', type=str, help='Type of input: rgb, color, depth'
+    )
 
     args = parser.parse_args()
 

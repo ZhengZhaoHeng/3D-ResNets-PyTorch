@@ -6,7 +6,7 @@ from datasets.synthetic import Synthetic
 
 
 def get_training_set(opt, spatial_transform, temporal_transform,
-                     target_transform):
+                     target_transform, image_type):
     assert opt.dataset in ['kinetics', 'activitynet', 'ucf101', 'hmdb51', 'synthetic']
 
     if opt.dataset == 'kinetics':
@@ -50,13 +50,14 @@ def get_training_set(opt, spatial_transform, temporal_transform,
             spatial_transform=spatial_transform,
             temporal_transform=temporal_transform,
             target_transform=target_transform,
-            channel_fuse_step=opt.channel_fuse)
+            channel_fuse_step=opt.channel_fuse,
+            image_type=image_type)
 
     return training_data
 
 
 def get_validation_set(opt, spatial_transform, temporal_transform,
-                       target_transform):
+                       target_transform, image_type):
     assert opt.dataset in ['kinetics', 'activitynet', 'ucf101', 'hmdb51', 'synthetic']
 
     if opt.dataset == 'kinetics':
@@ -110,11 +111,12 @@ def get_validation_set(opt, spatial_transform, temporal_transform,
             temporal_transform,
             target_transform,
             sample_duration=opt.sample_duration,
-            channel_fuse_step=opt.channel_fuse)
+            channel_fuse_step=opt.channel_fuse,
+            image_type=image_type)
     return validation_data
 
 
-def get_test_set(opt, spatial_transform, temporal_transform, target_transform):
+def get_test_set(opt, spatial_transform, temporal_transform, target_transform, image_type):
     assert opt.dataset in ['kinetics', 'activitynet', 'ucf101', 'hmdb51', 'synthetic']
     assert opt.test_subset in ['val', 'test']
 
@@ -173,7 +175,8 @@ def get_test_set(opt, spatial_transform, temporal_transform, target_transform):
             temporal_transform,
             target_transform,
             sample_duration=opt.sample_duration,
-            channel_fuse_step=opt.channel_fuse)
+            channel_fuse_step=opt.channel_fuse,
+            image_type=image_type)
 
 
     return test_data

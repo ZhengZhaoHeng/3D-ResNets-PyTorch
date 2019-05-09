@@ -5,6 +5,7 @@ import collections
 import numpy as np
 import torch
 from PIL import Image, ImageOps
+import cv2
 try:
     import accimage
 except ImportError:
@@ -68,6 +69,8 @@ class ToTensor(object):
             img = torch.from_numpy(np.array(pic, np.int32, copy=False))
         elif pic.mode == 'I;16':
             img = torch.from_numpy(np.array(pic, np.int16, copy=False))
+        elif pic.mode == 'F':
+            img = torch.from_numpy(np.array(pic, np.float32, copy=False))
         else:
             img = torch.ByteTensor(torch.ByteStorage.from_buffer(pic.tobytes()))
         # PIL image mode: 1, L, P, I, F, RGB, YCbCr, RGBA, CMYK
@@ -291,12 +294,17 @@ class MultiScaleCornerCrop(object):
         self.crop_positions = crop_positions
 
     def __call__(self, img):
-        min_length = min(img.size[0], img.size[1])
+        
+        if isinstance(img, np.ndarray):
+            min_length = min(img.shape[0], img.shape[1])
+            image_width = img.shape[1]
+            image_width = img.shape[0]
+        else:
+            min_length = min(img.size[0], img.size[1])
+            image_width = img.size[0]
+            image_height = img.size[1]
+
         crop_size = int(min_length * self.scale)
-
-        image_width = img.size[0]
-        image_height = img.size[1]
-
         if self.crop_position == 'c':
             center_x = image_width // 2
             center_y = image_height // 2
@@ -326,9 +334,15 @@ class MultiScaleCornerCrop(object):
             x2 = image_width
             y2 = image_height
 
-        img = img.crop((x1, y1, x2, y2))
+        if isinstance(img, np.ndarray):
+            img = img[y1:y2, x1:x2, :]
+            return cv2.resize(img, (self.size, self.size))
+        else:
+            img = img.crop((x1, y1, x2, y2))
+            return img.resize((self.size, self.size), self.interpolation)
 
-        return img.resize((self.size, self.size), self.interpolation)
+
+
 
     def randomize_parameters(self):
         self.scale = self.scales[random.randint(0, len(self.scales) - 1)]

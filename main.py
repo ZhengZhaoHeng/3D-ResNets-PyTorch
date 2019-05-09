@@ -33,7 +33,6 @@ if __name__ == '__main__':
         if opt.pretrain_path:
             opt.pretrain_path = os.path.join(opt.root_path, opt.pretrain_path)
     opt.scales = [opt.initial_scale]
-    os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpu
     for i in range(1, opt.n_scales):
         opt.scales.append(opt.scales[-1] * opt.scale_step)
     opt.arch = '{}-{}'.format(opt.model, opt.model_depth)
@@ -77,7 +76,7 @@ if __name__ == '__main__':
         temporal_transform = TemporalRandomCrop(opt.sample_duration)
         target_transform = ClassLabel()
         training_data = get_training_set(opt, spatial_transform,
-                                         temporal_transform, target_transform)
+                                         temporal_transform, target_transform, image_type=opt.image_type)
         train_loader = torch.utils.data.DataLoader(
             training_data,
             batch_size=opt.batch_size,
@@ -113,7 +112,7 @@ if __name__ == '__main__':
         temporal_transform = LoopPadding(opt.sample_duration)
         target_transform = ClassLabel()
         validation_data = get_validation_set(
-            opt, spatial_transform, temporal_transform, target_transform)
+            opt, spatial_transform, temporal_transform, target_transform, image_type=opt.image_type)
         val_loader = torch.utils.data.DataLoader(
             validation_data,
             batch_size=opt.batch_size,
@@ -155,7 +154,7 @@ if __name__ == '__main__':
         target_transform = VideoID()
 
         test_data = get_test_set(opt, spatial_transform, temporal_transform,
-                                 target_transform)
+                                 target_transform, image_type=opt.image_type)
         test_loader = torch.utils.data.DataLoader(
             test_data,
             batch_size=opt.batch_size,

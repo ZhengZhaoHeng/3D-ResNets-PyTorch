@@ -19,7 +19,17 @@ def pil_loader(path):
             return img.convert('RGB')
 
 def lua_loader(path):
-    return torchfile.load(path)
+    stuff = np.rollaxis(torchfile.load(path), 0, 3).astype(np.float32)
+    if stuff.shape[2] == 1:
+        stuff = stuff - stuff.min()
+        stuff = stuff / stuff.max()
+        stuff *= 255
+        stuff = np.tile(stuff, (1, 1, 3))
+    else:
+        stuff = (stuff + 1) * 255 / 2
+
+    return Image.fromarray(stuff.astype(np.uint8))
+
 
 def accimage_loader(path):
     try:

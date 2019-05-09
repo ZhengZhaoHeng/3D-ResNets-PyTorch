@@ -39,7 +39,7 @@ for entry in data:
     else:
         cats[1].append(entry)
         entry['label'] = 1
-        entry['n_frames'] = 120
+    entry['n_frames'] = 120
     entry['rgb'] = [os.path.join(data_path, entry['group'], 'frames', entry['id'], 'color', '{}_{:06d}.png'.format(entry['id'], i)) for i in range(120)]
     entry['depth'] = [os.path.join(data_path, entry['group'], 'frames', entry['id'], 'depth_pred', '{}_{:06d}.t7'.format(entry['id'], i)) for i in range(120)]
     entry['normal'] = [os.path.join(data_path, entry['group'], 'frames', entry['id'], 'normal_pred', '{}_{:06d}.t7'.format(entry['id'], i)) for i in range(120)]
