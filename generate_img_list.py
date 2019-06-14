@@ -1,7 +1,6 @@
 import json
 import os
 
-'''
 data_path = '/home/zhaohenz/scratch/obj-art-dataset/data'
 data = []
 
@@ -19,15 +18,15 @@ for group in os.listdir(data_path):
                     fp.write('\n')
 
 
-'''
 
-path = [('/z/zhaohenz/datasets/rbo_dataset/interactions/cabinet', 0), 
-('/z/zhaohenz/datasets/rbo_dataset/interactions/laptop', 1),
-('/z/zhaohenz/datasets/rbo_dataset/interactions/microwave', 1)]
+path = [('/z/zhaohenz/rbo_dataset/interactions/cabinet', 0), 
+('/z/zhaohenz/rbo_dataset/interactions/ikeasmall', 0),
+('/z/zhaohenz/rbo_dataset/interactions/laptop', 1),
+('/z/zhaohenz/rbo_dataset/interactions/microwave', 1)]
 
-for p in path:
-    videos = os.listdir(p[0])
-    with open('img_lists/rbo.txt', 'w') as fp:
+with open('img_lists/rbo.txt', 'w') as fp:
+    for p in path:
+        videos = os.listdir(p[0])
         for video in videos:
             img_path = os.path.join(p[0], video, 'camera_rgb')
             for prefix in ['depth', 'normal']:

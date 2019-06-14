@@ -170,13 +170,12 @@ def get_test_set(opt, spatial_transform, temporal_transform, target_transform, i
             opt.video_path,
             opt.annotation_path,
             subset,
-            0,
+            1,
             spatial_transform,
             temporal_transform,
             target_transform,
             sample_duration=opt.sample_duration,
             channel_fuse_step=opt.channel_fuse,
             image_type=image_type)
-
 
     return test_data

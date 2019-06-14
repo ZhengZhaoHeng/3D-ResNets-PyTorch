@@ -5,6 +5,9 @@ import time
 import os
 import sys
 import json
+import pickle
+import numpy as np
+import cv2
 
 from utils import AverageMeter
 
@@ -36,27 +39,30 @@ def test(data_loader, model, opt, class_names):
     output_buffer = []
     previous_video_id = ''
     test_results = {'results': {}}
+    out_dump = []
     for i, (inputs, targets) in enumerate(data_loader):
         data_time.update(time.time() - end_time)
-
+        
+        input_mean = np.reshape(np.asarray(opt.mean), (1, 1, 1, 3))
+        input_frames = inputs.data.numpy().squeeze()
+        input_frames = (np.moveaxis(input_frames, 0, -1) + input_mean).astype(np.uint8)
         inputs = Variable(inputs, volatile=True)
         outputs = model(inputs)
         if not opt.no_softmax_in_test:
             outputs = F.softmax(outputs)
-
+        out_dump.append({'data': input_frames, 'scores': outputs.data.cpu().numpy()})
         for j in range(outputs.size(0)):
-            if not (i == 0 and j == 0) and targets[j] != previous_video_id:
-                calculate_video_results(output_buffer, previous_video_id,
-                                        test_results, class_names)
-                output_buffer = []
+            output_buffer = []
             output_buffer.append(outputs[j].data.cpu())
-            previous_video_id = targets[j]
-
+            calculate_video_results(output_buffer, targets[j],
+                                        test_results, class_names)
+        '''
         if (i % 100) == 0:
             with open(
                     os.path.join(opt.result_path, '{}.json'.format(
                         opt.test_subset)), 'w') as f:
                 json.dump(test_results, f)
+        '''
 
         batch_time.update(time.time() - end_time)
         end_time = time.time()
@@ -69,6 +75,13 @@ def test(data_loader, model, opt, class_names):
                   batch_time=batch_time,
                   data_time=data_time))
     with open(
-            os.path.join(opt.result_path, '{}.json'.format(opt.test_subset)),
-            'w') as f:
+            os.path.join(opt.result_path, '{}.json'.format(
+                opt.test_subset)), 'w') as f:
         json.dump(test_results, f)
+
+    '''
+    with open(
+            os.path.join(opt.result_path, '{}.pkl'.format(opt.test_subset)),
+            'wb') as f:
+        pickle.dump(out_dump, f)
+    '''

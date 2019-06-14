@@ -199,7 +199,6 @@ class Synthetic(data.Dataset):
             root_path, annotation_path, subset, n_samples_for_each_video,
             sample_duration, sample_step, image_type)
 
-        print (len(self.data))
         self.spatial_transform = spatial_transform
         self.temporal_transform = temporal_transform
         self.target_transform = target_transform
@@ -221,6 +220,7 @@ class Synthetic(data.Dataset):
             step = random.randint(1, 10)
             frame_indices = self.temporal_transform(frame_indices, step=step)
         clip = self.loader(frame_indices, self.data[index]['img_list'], self.channel_fuse_step)
+        ret = []
         if self.spatial_transform is not None:
             self.spatial_transform.randomize_parameters()
             clip = [self.spatial_transform(img) for img in clip]
